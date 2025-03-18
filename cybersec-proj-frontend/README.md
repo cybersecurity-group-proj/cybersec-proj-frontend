@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Social Feed Application with RBAC
+
+A React-based social feed application with Role-Based Access Control (RBAC) built with Next.js and Tailwind CSS.
+
+## Features
+
+- **Authentication**: User registration and login
+- **Post Management**: Create, read, update, and delete posts
+- **Role-Based Access Control (RBAC)**:
+  - **Guests**: Can view all posts without logging in
+  - **Users**: Can create posts and edit/delete their own posts
+  - **Moderators**: Can delete any post
+  - **Admins**: Can manage users (delete/assign roles) and edit/delete any post
+- **Persistent Data**: Uses localStorage to persist data between sessions
+- **Real-time Updates**: Automatically refreshes posts every 5 seconds
+
+## Project Structure
+
+```
+src/
+├── app/                  # Next.js app router
+│   ├── auth/             # Authentication pages
+│   │   ├── signin/       # Sign in page
+│   │   └── signup/       # Sign up page
+│   ├── dashboard/        # User dashboard
+│   │   └── users/        # User management (admin only)
+│   ├── posts/            # Post-related pages
+│   │   └── create/       # Dedicated post creation page
+│   ├── globals.css       # Global CSS with custom color variables
+│   ├── layout.js         # Root layout with theme configuration
+│   └── page.js           # Home/Feed page
+├── components/           # Reusable components
+│   ├── feed/             # Feed components
+│   │   ├── CreatePost.js # Post creation form
+│   │   └── Post.js       # Individual post component
+│   └── layout/           # Layout components
+│       └── Navbar.js     # Navigation bar
+├── context/              # React Context
+│   └── AuthContext.js    # Authentication context
+└── lib/                  # Utility functions
+    └── api.js            # Mock API with localStorage persistence
+```
+
+## Demo Accounts
+
+For testing purposes, the application includes these demo accounts:
+
+- **Admin**: username `admin`, password `admin123`
+- **Moderator**: username `mod`, password `mod123`
+- **Regular User**: username `user1`, password `user123`
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Role-Based Access Control
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The application demonstrates RBAC through the `AuthContext` provider, which manages:
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+- User authentication state
+- Role-based permissions
+- Access control for actions like editing or deleting posts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Each component checks user permissions before rendering action buttons or allowing operations.
 
-## Learn More
+## Implementation Details
 
-To learn more about Next.js, take a look at the following resources:
+- **Frontend**: Next.js 13+ (App Router), React, Tailwind CSS
+- **State Management**: React Context API and React Hooks
+- **Data Storage**: Mock API with localStorage persistence
+- **Styling**: Tailwind CSS with custom color variables for responsive design
+- **Data Consistency**: Automatic refresh of data and optimistic UI updates
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Connecting to Backend
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The frontend is designed to be easily connected to a backend API:
 
-## Deploy on Vercel
+1. Modify the functions in `src/lib/api.js` to make actual HTTP requests
+2. Replace localStorage operations with API calls
+3. Update authentication methods to use JWT or session-based auth
+4. Keep the same response structure to maintain compatibility with components
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+The mock API follows RESTful conventions and can be adapted to work with various backend technologies.
