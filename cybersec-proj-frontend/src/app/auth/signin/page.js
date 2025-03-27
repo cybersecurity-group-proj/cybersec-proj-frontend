@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { authAPI } from '@/lib/api';
+import { authAPI } from '@/lib/api2';
 
 export default function SignIn() {
   const [username, setUsername] = useState('');
@@ -12,7 +12,7 @@ export default function SignIn() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { login } = useAuth();
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,7 +22,6 @@ export default function SignIn() {
     try {
       const response = await authAPI.login(username, password);
       if (response.success) {
-        login(response.user);
         router.push('/');
       } else {
         setError(response.message || 'Failed to sign in');

@@ -1,40 +1,66 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect } from 'react';
+import { authAPI } from '@/lib/api2';
 
-// Define roles
 export const ROLES = {
   USER: 'user',
   MODERATOR: 'moderator',
   ADMIN: 'admin',
+  BANNED: 'banned',
 };
 
-// Create authentication context
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // On mount, try to refresh and get current user
   useEffect(() => {
-    // Check for saved user in localStorage
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-    setLoading(false);
+    const initializeAuth = async () => {
+      console.log('[AuthProvider] useEffect running');
+      const refreshToken = localStorage.getItem('refresh_token');
+      if (!refreshToken) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // Try to refresh access token
+        const res = await authAPI.refreshAccessToken?.();
+        if (!res?.success) throw new Error('Refresh failed');
+
+        // Then get user data
+        const userRes = await authAPI.getCurrentUser();
+        if (userRes.success) {
+          setUser(userRes.user);
+        }
+      } catch (err) {
+        console.warn('Auth initialization failed:', err);
+        await authAPI.logout();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
   }, []);
 
+
   // Login function
-  const login = (userData) => {
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
+  const login = async (username, password) => {
+    const res = await authAPI.login(username, password);
+    if (res.success) {
+      setUser(res.user);
+    }
+    return res;
   };
 
   // Logout function
-  const logout = () => {
+  const logout = async () => {
+    await authAPI.logout();
     setUser(null);
-    localStorage.removeItem('user');
   };
 
   // Update user data (for role changes, etc.)
@@ -45,7 +71,7 @@ export function AuthProvider({ children }) {
 
   // Check if user has specific role
   const hasRole = (role) => {
-    return user?.role === role;
+    return user?.role?.name === role;
   };
 
   // Check if user is admin
