@@ -23,7 +23,33 @@ const axiosInstance = axios.create({
 });
 
 
-axiosInstance.interceptors.request.use((config) => {
+axiosInstance.interceptors.request.use(async (config) => {
+
+  if (config.authRequired === false) return config;
+
+  if (typeof window !== 'undefined') {
+    if (!accessTokenMemory) {
+      const refreshToken = localStorage.getItem('refresh_token');
+      if (refreshToken) {
+        try {
+          const res = await axios.get(`${BASE_URL}/auth/refresh_token`, {
+            headers: {
+              Authorization: `Bearer ${refreshToken}`,
+            },
+          });
+
+          const { access_token } = res.data;
+          accessTokenMemory = access_token;
+          console.log('Refreshed access token');
+        } catch (err) {
+          console.error('Refresh failed', err);
+        }
+      } else {
+        console.warn('No refresh token found');
+      }
+    }
+  }
+
   if (typeof window !== 'undefined' && accessTokenMemory) {
     config.headers.Authorization = `Bearer ${accessTokenMemory}`;
   }
@@ -43,7 +69,7 @@ axiosInstance.interceptors.response.use(
       typeof window !== 'undefined'
     ) {
       originalRequest._retry = true;
-
+      console.log(error.response?.status)
       if (isRefreshing) {
         
         return new Promise((resolve, reject) => {
@@ -60,9 +86,10 @@ axiosInstance.interceptors.response.use(
       const refreshToken = localStorage.getItem('refresh_token');
 
       try {
-        const res = await axios.post(`${API_BASE_URL}/auth/refresh_token`, {
-          refresh_token: refreshToken,
-        });
+        const res = await axios.get(`${BASE_URL}/auth/refresh_token`,  {
+        headers: {
+          Authorization: `Bearer ${refreshToken}`,
+        }});
 
         const { access_token } = res.data;
 
@@ -74,7 +101,9 @@ axiosInstance.interceptors.response.use(
         return axiosInstance(originalRequest);
       } catch (err) {
         processQueue(err, null);
-        authAPI.logout(); 
+        localStorage.removeItem('refresh_token');
+        alert('Your session has expired. Please log in again.');
+        window.location.href = '/auth/signin'
         return Promise.reject(err);
       } finally {
         isRefreshing = false;
@@ -91,7 +120,8 @@ export const authAPI = {
       const response = await axiosInstance.post('/auth/login', {
         username,
         password,
-      });
+      },
+      {authRequired: false});
 
       const { access_token, refresh_token, user } = response.data;
 
@@ -114,7 +144,8 @@ export const authAPI = {
         username,
         password,
         name,
-      });
+      },
+      {authRequired: false});
 
       const { access_token, refresh_token, user } = response.data;
 
@@ -135,20 +166,23 @@ export const authAPI = {
     try {
       const refresh_token = localStorage.getItem('refresh_token');
       if (refresh_token) {
-        await axiosInstance.post('/auth/logout', { refresh_token });
+        await axiosInstance.get('/auth/logout', { headers: {
+          Authorization: `Bearer ${refresh_token}`,
+        }});
       }
     } catch (err) {
       console.warn('Logout API call failed:', err);
     } finally {
       accessTokenMemory = null;
       localStorage.removeItem('refresh_token');
-      localStorage.removeItem('user');
     }
   },
 
   getCurrentUser: async () => {
     try {
       const response = await axiosInstance.get('/auth/current');
+
+
       return { success: true, user: response.data };
     } catch (err) {
       return {
@@ -163,5 +197,56 @@ export const authAPI = {
 
   setAccessToken: (token) => {
     accessTokenMemory = token;
+  },
+};
+
+
+export const postsAPI = {
+  getPosts: async () => {
+    try {
+      const res = await axiosInstance.get('/posts', {authRequired: false});
+
+      const posts = res.data.map((post) => ({
+        id: post.uid,
+        title: post.title,
+        content: post.text, 
+        userId: post.author.uid, 
+        username: post.author.name,
+        createdAt: post.time, 
+      }));
+      return { success: true, posts};
+    } catch (err) {
+      return { success: false, message: 'Failed to fetch posts' };
+    }
+  },
+
+  createPost: async ({ title, content }) => {
+    try {
+      const res = await axiosInstance.post('/posts', { 
+        title,
+        text:content 
+      });
+      return { success: true, post: res.data };
+    } catch (err) {
+      return { success: false, message: 'Failed to create post' };
+    }
+  },
+
+  updatePost: async (postId, { title, content }) => {
+    try {
+      const res = await axiosInstance.put(`/posts/${postId}`, { title, content });
+      return { success: true, post: res.data };
+    } catch (err) {
+      return { success: false, message: 'Failed to update post' };
+    }
+  },
+
+  deletePost: async (postId) => {
+    try {
+      await axiosInstance.delete(`/posts/${postId}`);
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: 'Failed to delete post' };
+    }
   },
 };

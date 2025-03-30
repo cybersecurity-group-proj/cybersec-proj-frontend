@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { postsAPI } from '@/lib/api';
+import { postsAPI } from '@/lib/api2';
 import Post from '@/components/feed/Post';
 
 export default function Feed() {
@@ -14,59 +14,46 @@ export default function Feed() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Initial fetch of posts
+    // Fetch posts initially
     fetchPosts();
-    
-    // Set up interval to refresh posts every 5 seconds
+
+    // get new posts every 5 secs
     const intervalId = setInterval(() => {
-      fetchPosts(false); // Pass false to not show loading indicator for refreshes
+      fetchPosts(false); 
     }, 5000);
-    
-    // Clean up interval on unmount
+
     return () => clearInterval(intervalId);
   }, []);
 
   const fetchPosts = async (showLoading = true) => {
     try {
-      if (showLoading) {
-        setLoading(true);
-      }
+      if (showLoading) setLoading(true);
       const response = await postsAPI.getPosts();
+
       if (response.success) {
         setPosts(response.posts);
+        setError(null); // Clear any previous error
       } else {
-        setError('Failed to fetch posts');
+        setError(response.message || 'Failed to fetch posts');
       }
     } catch (err) {
       console.error('Error fetching posts:', err);
       setError('An unexpected error occurred');
     } finally {
-      if (showLoading) {
-        setLoading(false);
-      }
+      if (showLoading) setLoading(false);
     }
   };
 
   const handleDelete = (postId) => {
-    // Immediately update UI
-    setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
-    
-    // Then refresh all posts after a short delay
-    setTimeout(() => {
-      fetchPosts(false);
-    }, 500);
+    setPosts(prev => prev.filter(post => post.id !== postId));
+    setTimeout(() => fetchPosts(false), 500);
   };
 
   const handleUpdate = (updatedPost) => {
-    // Immediately update UI
-    setPosts(prevPosts => 
-        prevPosts.map(post => post.id === updatedPost.id ? updatedPost : post)
+    setPosts(prev =>
+      prev.map(post => (post.id === updatedPost.id ? updatedPost : post))
     );
-    
-    // Then refresh all posts after a short delay
-    setTimeout(() => {
-      fetchPosts(false);
-    }, 500);
+    setTimeout(() => fetchPosts(false), 500);
   };
 
   return (

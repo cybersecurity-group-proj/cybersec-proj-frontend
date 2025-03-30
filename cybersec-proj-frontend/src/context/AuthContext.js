@@ -27,18 +27,12 @@ export function AuthProvider({ children }) {
       }
 
       try {
-        // Try to refresh access token
-        const res = await authAPI.refreshAccessToken?.();
-        if (!res?.success) throw new Error('Refresh failed');
 
-        // Then get user data
-        const userRes = await authAPI.getCurrentUser();
-        if (userRes.success) {
-          setUser(userRes.user);
-        }
+        getCurrentUser();
+
       } catch (err) {
         console.warn('Auth initialization failed:', err);
-        await authAPI.logout();
+        setUser(null)
       } finally {
         setLoading(false);
       }
@@ -49,11 +43,16 @@ export function AuthProvider({ children }) {
 
 
   // Login function
-  const login = async (username, password) => {
-    const res = await authAPI.login(username, password);
+  const getCurrentUser = async () => {
+    const res = await authAPI.getCurrentUser();
     if (res.success) {
-      setUser(res.user);
+      const currentUser = res.user
+    
+      currentUser.role = currentUser.role.name
+      console.log(currentUser)
+      setUser(currentUser);
     }
+    
     return res;
   };
 
@@ -71,7 +70,7 @@ export function AuthProvider({ children }) {
 
   // Check if user has specific role
   const hasRole = (role) => {
-    return user?.role?.name === role;
+    return user?.role === role;
   };
 
   // Check if user is admin
@@ -109,7 +108,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider value={{
       user,
       loading,
-      login,
+
       logout,
       updateUser,
       hasRole,
@@ -120,6 +119,7 @@ export function AuthProvider({ children }) {
       canDeletePost,
       canEditPost,
       canManageUsers,
+      getCurrentUser
     }}>
       {children}
     </AuthContext.Provider>

@@ -12,6 +12,7 @@ export default function SignIn() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { getCurrentUser } = useAuth();
 
 
   const handleSubmit = async (e) => {
@@ -21,8 +22,10 @@ export default function SignIn() {
     
     try {
       const response = await authAPI.login(username, password);
-      if (response.success) {
+      if (response.success) {   
+        getCurrentUser()     
         router.push('/');
+        
       } else {
         setError(response.message || 'Failed to sign in');
       }

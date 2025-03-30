@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { postsAPI } from '@/lib/api';
+import { postsAPI } from '@/lib/api2';
 
 export default function CreatePostPage() {
   const router = useRouter();
@@ -50,8 +50,6 @@ export default function CreatePostPage() {
       // Create the post
       const response = await postsAPI.createPost(
         { title, content },
-        user.id,
-        user.name || user.username
       );
       
       if (response.success) {
