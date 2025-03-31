@@ -11,6 +11,7 @@ A React-based social feed application with Role-Based Access Control (RBAC) buil
   - **Users**: Can create posts and edit/delete their own posts
   - **Moderators**: Can delete any post
   - **Admins**: Can manage users (delete/assign roles) and edit/delete any post
+  - **Banned**: Revokes all permissions
 - **Persistent Data**: Uses localStorage to persist data between sessions
 - **Real-time Updates**: Automatically refreshes posts every 5 seconds
 
@@ -38,20 +39,21 @@ src/
 ├── context/              # React Context
 │   └── AuthContext.js    # Authentication context
 └── lib/                  # Utility functions
-    └── api.js            # Mock API with localStorage persistence
+    └── api.js            # Api calls
 ```
 
-## Demo Accounts
+## Demo Account
 
 For testing purposes, the application includes these demo accounts:
 
-- **Admin**: username `admin`, password `admin123`
-- **Moderator**: username `mod`, password `mod123`
-- **Regular User**: username `user1`, password `user123`
+- **Admin**: username `admin`, password `Admin@1234`
+
+you can create more accounts through the sign up and then promote them when logged in as an admin 
 
 ## Getting Started
 
 1. Clone the repository
+2. Create .env.local and set NEXT_PUBLIC_API_BASE_URL variable to the backend url (http://localhost:8000/api/v1 if you are using our backend)
 2. Install dependencies:
    ```bash
    npm install
@@ -76,17 +78,6 @@ Each component checks user permissions before rendering action buttons or allowi
 
 - **Frontend**: Next.js 13+ (App Router), React, Tailwind CSS
 - **State Management**: React Context API and React Hooks
-- **Data Storage**: Mock API with localStorage persistence
 - **Styling**: Tailwind CSS with custom color variables for responsive design
 - **Data Consistency**: Automatic refresh of data and optimistic UI updates
 
-## Connecting to Backend
-
-The frontend is designed to be easily connected to a backend API:
-
-1. Modify the functions in `src/lib/api.js` to make actual HTTP requests
-2. Replace localStorage operations with API calls
-3. Update authentication methods to use JWT or session-based auth
-4. Keep the same response structure to maintain compatibility with components
-
-The mock API follows RESTful conventions and can be adapted to work with various backend technologies.

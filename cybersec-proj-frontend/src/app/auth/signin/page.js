@@ -12,7 +12,8 @@ export default function SignIn() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { login } = useAuth();
+  const { getCurrentUser } = useAuth();
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,9 +22,10 @@ export default function SignIn() {
     
     try {
       const response = await authAPI.login(username, password);
-      if (response.success) {
-        login(response.user);
+      if (response.success) {   
+        getCurrentUser()     
         router.push('/');
+        
       } else {
         setError(response.message || 'Failed to sign in');
       }
@@ -112,9 +114,7 @@ export default function SignIn() {
               Demo Accounts
             </h3>
             <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">
-              <p>Admin: username <strong>admin</strong>, password <strong>admin123</strong></p>
-              <p>Moderator: username <strong>mod</strong>, password <strong>mod123</strong></p>
-              <p>Regular User: username <strong>user1</strong>, password <strong>user123</strong></p>
+              <p>Admin: username <strong>admin</strong>, password <strong>Admin@1234</strong></p>
             </div>
           </div>
         </div>

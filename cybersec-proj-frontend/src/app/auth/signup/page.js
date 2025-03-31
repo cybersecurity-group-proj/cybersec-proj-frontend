@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext';
 import { authAPI } from '@/lib/api';
 
 export default function SignUp() {
@@ -14,7 +13,6 @@ export default function SignUp() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { login } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,8 +34,7 @@ export default function SignUp() {
       });
       
       if (response.success) {
-        login(response.user);
-        router.push('/');
+        router.push('/auth/signin');
       } else {
         setError(response.message || 'Failed to sign up');
       }

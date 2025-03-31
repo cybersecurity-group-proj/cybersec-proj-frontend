@@ -1,40 +1,66 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect } from 'react';
+import { authAPI } from '@/lib/api';
 
-// Define roles
 export const ROLES = {
   USER: 'user',
   MODERATOR: 'moderator',
   ADMIN: 'admin',
+  BANNED: 'banned',
 };
 
-// Create authentication context
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // On mount, try to refresh and get current user
   useEffect(() => {
-    // Check for saved user in localStorage
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-    setLoading(false);
+    setLoading(true);
+    const initializeAuth = async () => {
+      
+      console.log('[AuthProvider] useEffect running');
+      const refreshToken = localStorage.getItem('refresh_token');
+      if (!refreshToken) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        
+        await getCurrentUser();
+
+      } catch (err) {
+        console.warn('Auth initialization failed:', err);
+        setUser(null)
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
   }, []);
 
+
   // Login function
-  const login = (userData) => {
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
+  const getCurrentUser = async () => {
+    const res = await authAPI.getCurrentUser();
+    if (res.success) {
+      const currentUser = res.user
+      currentUser.id = currentUser.uid
+      currentUser.role = currentUser.role.name
+      setUser(currentUser);
+    }
+    
+    return res;
   };
 
   // Logout function
-  const logout = () => {
+  const logout = async () => {
+    await authAPI.logout();
     setUser(null);
-    localStorage.removeItem('user');
   };
 
   // Update user data (for role changes, etc.)
@@ -53,6 +79,8 @@ export function AuthProvider({ children }) {
   
   // Check if user is moderator
   const isModerator = () => hasRole(ROLES.MODERATOR);
+
+  const isBanned = () => hasRole(ROLES.BANNED);
   
   // Check if user owns a resource
   const isOwner = (resourceUserId) => {
@@ -62,17 +90,17 @@ export function AuthProvider({ children }) {
   // Check if user can perform action on a resource
   const canModifyPost = (post) => {
     if (!user) return false;
-    return isAdmin() || isModerator() || isOwner(post.userId);
+    return isAdmin() || isModerator() || (isOwner(post.userId) && !isBanned());
   };
 
   const canDeletePost = (post) => {
     if (!user) return false;
-    return isAdmin() || isModerator() || isOwner(post.userId);
+    return isAdmin() || isModerator() || (isOwner(post.userId) && !isBanned());
   };
 
   const canEditPost = (post) => {
     if (!user) return false;
-    return isAdmin() || isOwner(post.userId);
+    return isAdmin() || (isOwner(post.userId) && !isBanned());
   };
 
   const canManageUsers = () => {
@@ -83,7 +111,6 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider value={{
       user,
       loading,
-      login,
       logout,
       updateUser,
       hasRole,
@@ -94,6 +121,8 @@ export function AuthProvider({ children }) {
       canDeletePost,
       canEditPost,
       canManageUsers,
+      getCurrentUser,
+      isBanned
     }}>
       {children}
     </AuthContext.Provider>

@@ -7,66 +7,53 @@ import { postsAPI } from '@/lib/api';
 import Post from '@/components/feed/Post';
 
 export default function Feed() {
-  const { user } = useAuth();
+  const { user , isBanned } = useAuth();
   const router = useRouter();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Initial fetch of posts
+    // Fetch posts initially
     fetchPosts();
-    
-    // Set up interval to refresh posts every 5 seconds
+
+    // get new posts every 5 secs
     const intervalId = setInterval(() => {
-      fetchPosts(false); // Pass false to not show loading indicator for refreshes
+      fetchPosts(false); 
     }, 5000);
-    
-    // Clean up interval on unmount
+
     return () => clearInterval(intervalId);
   }, []);
 
   const fetchPosts = async (showLoading = true) => {
     try {
-      if (showLoading) {
-        setLoading(true);
-      }
+      if (showLoading) setLoading(true);
       const response = await postsAPI.getPosts();
+
       if (response.success) {
         setPosts(response.posts);
+        setError(null); 
       } else {
-        setError('Failed to fetch posts');
+        setError(response.message || 'Failed to fetch posts');
       }
     } catch (err) {
       console.error('Error fetching posts:', err);
       setError('An unexpected error occurred');
     } finally {
-      if (showLoading) {
-        setLoading(false);
-      }
+      if (showLoading) setLoading(false);
     }
   };
 
   const handleDelete = (postId) => {
-    // Immediately update UI
-    setPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
-    
-    // Then refresh all posts after a short delay
-    setTimeout(() => {
-      fetchPosts(false);
-    }, 500);
+    // setPosts(prev => prev.filter(post => post.id !== postId));
+    setTimeout(() => fetchPosts(false), 500);
   };
 
   const handleUpdate = (updatedPost) => {
-    // Immediately update UI
-    setPosts(prevPosts => 
-        prevPosts.map(post => post.id === updatedPost.id ? updatedPost : post)
-    );
-    
-    // Then refresh all posts after a short delay
-    setTimeout(() => {
-      fetchPosts(false);
-    }, 500);
+    // setPosts(prev =>
+    //   prev.map(post => (post.id === updatedPost.id ? updatedPost : post))
+    // );
+    setTimeout(() => fetchPosts(false), 500);
   };
 
   return (
@@ -79,12 +66,19 @@ export default function Feed() {
           
           <div className="flex justify-end">
             {user ? (
-              <button
-                onClick={() => router.push('/posts/create')}
-                className="bg-white/90 text-purple-500 hover:bg-white focus:ring-4 focus:ring-purple-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center cursor-pointer"
-              >
-                Create Post
-              </button>
+              isBanned() ? (
+                <div  className="bg-red-500 text-white font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                  You are banned. Contact admin to get unbanned.
+                </div>
+              ):(
+                <button
+                  onClick={() => router.push('/posts/create')}
+                  className="bg-white/90 text-purple-500 hover:bg-white focus:ring-4 focus:ring-purple-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center cursor-pointer"
+                >
+                  Create Post
+                </button>
+              )
+
             ) : (
               <a 
                 href="/auth/signin" 

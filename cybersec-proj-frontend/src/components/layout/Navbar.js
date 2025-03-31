@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Navbar() {
-  const { user, logout, isAdmin, isModerator } = useAuth();
+  const { user, logout, isAdmin, isBanned } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {
@@ -30,7 +30,7 @@ export default function Navbar() {
               >
                 Feed
               </Link>
-              {user && (
+              {user && !isBanned() && (
                 <>
                   <Link 
                     href="/dashboard" 

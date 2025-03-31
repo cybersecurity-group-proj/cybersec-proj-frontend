@@ -7,7 +7,7 @@ import { postsAPI } from '@/lib/api';
 
 export default function CreatePostPage() {
   const router = useRouter();
-  const { user, isLoading } = useAuth();
+  const { user, loading } = useAuth();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -16,11 +16,11 @@ export default function CreatePostPage() {
 
   // Handle authentication redirects in useEffect to avoid hydration issues
   useEffect(() => {
-    if (!isLoading && !user && !isRedirecting) {
+    if (!loading && !user && !isRedirecting) {
       setIsRedirecting(true);
       router.push('/auth/signin?redirect=/posts/create');
     }
-  }, [user, isLoading, router, isRedirecting]);
+  }, [user, loading, router, isRedirecting]);
 
   const validateForm = () => {
     if (!title.trim()) {
@@ -50,8 +50,6 @@ export default function CreatePostPage() {
       // Create the post
       const response = await postsAPI.createPost(
         { title, content },
-        user.id,
-        user.name || user.username
       );
       
       if (response.success) {
@@ -74,7 +72,7 @@ export default function CreatePostPage() {
   };
 
   // Show loading during initial authentication check or redirection
-  if (isLoading || isRedirecting || !user) {
+  if (loading || isRedirecting || !user) {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-400"></div>
