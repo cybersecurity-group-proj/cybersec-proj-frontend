@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { postsAPI } from '@/lib/api2';
+import { postsAPI } from '@/lib/api';
 import Post from '@/components/feed/Post';
 
 export default function Feed() {
-  const { user } = useAuth();
+  const { user , isBanned } = useAuth();
   const router = useRouter();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +32,7 @@ export default function Feed() {
 
       if (response.success) {
         setPosts(response.posts);
-        setError(null); // Clear any previous error
+        setError(null); 
       } else {
         setError(response.message || 'Failed to fetch posts');
       }
@@ -45,14 +45,14 @@ export default function Feed() {
   };
 
   const handleDelete = (postId) => {
-    setPosts(prev => prev.filter(post => post.id !== postId));
+    // setPosts(prev => prev.filter(post => post.id !== postId));
     setTimeout(() => fetchPosts(false), 500);
   };
 
   const handleUpdate = (updatedPost) => {
-    setPosts(prev =>
-      prev.map(post => (post.id === updatedPost.id ? updatedPost : post))
-    );
+    // setPosts(prev =>
+    //   prev.map(post => (post.id === updatedPost.id ? updatedPost : post))
+    // );
     setTimeout(() => fetchPosts(false), 500);
   };
 
@@ -66,12 +66,19 @@ export default function Feed() {
           
           <div className="flex justify-end">
             {user ? (
-              <button
-                onClick={() => router.push('/posts/create')}
-                className="bg-white/90 text-purple-500 hover:bg-white focus:ring-4 focus:ring-purple-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center cursor-pointer"
-              >
-                Create Post
-              </button>
+              isBanned() ? (
+                <div  className="bg-red-500 text-white font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                  You are banned. Contact admin to get unbanned.
+                </div>
+              ):(
+                <button
+                  onClick={() => router.push('/posts/create')}
+                  className="bg-white/90 text-purple-500 hover:bg-white focus:ring-4 focus:ring-purple-100 font-medium rounded-lg text-sm px-5 py-2.5 text-center cursor-pointer"
+                >
+                  Create Post
+                </button>
+              )
+
             ) : (
               <a 
                 href="/auth/signin" 

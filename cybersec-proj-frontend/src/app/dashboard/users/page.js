@@ -42,11 +42,9 @@ export default function UserManagement() {
 
   const handleRoleChange = async (userId, newRole) => {
     try {
-      const response = await userAPI.updateUserRole(userId, newRole);
+      const response = await userAPI.updateUser(userId, newRole);
       if (response.success) {
-        setUsers(
-          users.map((u) => (u.id === userId ? { ...u, role: newRole } : u))
-        );
+        fetchUsers()
       }
     } catch (error) {
       console.error('Error updating role:', error);
@@ -63,7 +61,7 @@ export default function UserManagement() {
       try {
         const response = await userAPI.deleteUser(userId);
         if (response.success) {
-          setUsers(users.filter((u) => u.id !== userId));
+          fetchUsers()
         }
       } catch (error) {
         console.error('Error deleting user:', error);
@@ -135,6 +133,7 @@ export default function UserManagement() {
                       <option value={ROLES.USER}>User</option>
                       <option value={ROLES.MODERATOR}>Moderator</option>
                       <option value={ROLES.ADMIN}>Admin</option>
+                      <option value={ROLES.BANNED}>Banned</option>
                     </select>
                   </td>
                   <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">

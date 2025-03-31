@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { authAPI } from '@/lib/api2';
+import { authAPI } from '@/lib/api';
 
 export default function SignIn() {
   const [username, setUsername] = useState('');
@@ -114,9 +114,7 @@ export default function SignIn() {
               Demo Accounts
             </h3>
             <div className="mt-2 text-xs text-gray-600 dark:text-gray-400">
-              <p>Admin: username <strong>admin</strong>, password <strong>admin123</strong></p>
-              <p>Moderator: username <strong>mod</strong>, password <strong>mod123</strong></p>
-              <p>Regular User: username <strong>user1</strong>, password <strong>user123</strong></p>
+              <p>Admin: username <strong>admin</strong>, password <strong>Admin@1234</strong></p>
             </div>
           </div>
         </div>

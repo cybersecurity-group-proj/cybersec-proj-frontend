@@ -7,7 +7,7 @@ import { postsAPI } from '@/lib/api';
 import Post from '@/components/feed/Post';
 
 export default function Dashboard() {
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const [userPosts, setUserPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -63,7 +63,7 @@ export default function Dashboard() {
 
   const handleDelete = (postId) => {
     // Immediately update UI
-    setUserPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
+    // setUserPosts(prevPosts => prevPosts.filter(post => post.id !== postId));
     
     // Then refresh all posts after a short delay
     setTimeout(() => {
@@ -73,9 +73,9 @@ export default function Dashboard() {
 
   const handleUpdate = (updatedPost) => {
     // Immediately update UI
-    setUserPosts(prevPosts => 
-        prevPosts.map(post => post.id === updatedPost.id ? updatedPost : post)
-    );
+    // setUserPosts(prevPosts => 
+    //     prevPosts.map(post => post.id === updatedPost.id ? updatedPost : post)
+    // );
     
     // Then refresh all posts after a short delay
     setTimeout(() => {

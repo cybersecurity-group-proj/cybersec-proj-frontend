@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { authAPI } from '@/lib/api2';
+import { authAPI } from '@/lib/api';
 
 export default function SignUp() {
   const [name, setName] = useState('');
